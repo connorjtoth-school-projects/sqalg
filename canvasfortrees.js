@@ -172,6 +172,15 @@ function createText(context, pre, mid, post, x, y, background, override, text_co
   return region;
 }
 
+function countNodes(node)
+{
+  var count = 1;
+  node.children.forEach(function(self) {
+    count += countNodes(self);
+  });
+  return count;
+}
+
 // returns the integer node depth of the tree
 // node: tree of which to find the height
 function treeDepth (node)
@@ -185,10 +194,11 @@ function treeDepth (node)
 
 // returns an array with canvas-coordinates from the coordinates
 // created during the buchheim process for each node of the tree
-function coordsToCanvas(x,y)
+function coordsToCanvas(x,y,num)
 {
-  var PADDING_X = 50 * MARGIN;
-  var canvasX = (canvas.width - PADDING_X * 2) * x + PADDING_X;
+  console.log('________________________________190__________________________', x, y);
+  var PADDING_X = 10 * MARGIN;
+  var canvasX = (canvas.width - PADDING_X * 2) * (1.5*x/num) + PADDING_X;
   var canvasY = (y + 1) * 60;
   return [canvasX, canvasY];
 }
@@ -215,9 +225,7 @@ function processTree(tree)
     v['change'] = 0;
     v['shift'] = 0;
     v['ancestor'] = v;
-
-
-    v.children.forEach(function (self, i, arr) {
+    v['children'].forEach(function (self, i, arr) {
       // add properties related to parent
       self['parent'] = v;
       v['number'] = i + 1;
@@ -234,6 +242,7 @@ function processTree(tree)
 function PrintTree(context, tree)
 {
   var queue = new Array();
+  size = countNodes(tree);
   queue.push(tree);
   while (queue.length > 0)
   {
@@ -241,7 +250,7 @@ function PrintTree(context, tree)
     var v = queue.shift();
 
     // convert the processed (x,y) coordinates into canvas coordinates
-    var canvasCoords = coordsToCanvas(v.x,v.y);
+    var canvasCoords = coordsToCanvas(v.x,v.y, size);
     v.x = canvasCoords[0];
     v.y = canvasCoords[1];
 
@@ -259,4 +268,81 @@ function PrintTree(context, tree)
       queue.push(self);
     })
   }
+  context.globalCompositeOperation = 'destination-over';
+  context.beginPath();
+  context.fillStyle = STCOLOR.WHITE;
+  context.fillRect(0,0,CENTER_X * 2, CENTER_Y * 2);
+  context.closePath();
+  context.globalCompositeOperation = 'source-over';
+
+}
+
+
+
+function treeToLatex(tree) {
+
+  var optext  = '';
+  var return_text = '';
+  if (tree.children.length == 0)
+  {
+    console.log(272);
+    console.log(tree.text);
+    return_text =  tree.text;
+  }
+  else if (tree.children.length == 1)
+  {
+    if (tree.type == 'alias')
+    {
+      console.log(279);
+      console.log(tree.text);
+      return_text = '\\rho_{' + tree['text'] + '}(' + treeToLatex(tree['children'][0]) + ')';
+    }
+    else
+    {
+      console.log(284);
+      console.log(tree.text);
+      optext = tree.text;
+      optext = replacer(optext, 'SELECT_{', '\\sigma_{');
+      optext = replacer(optext, 'PROJECT_{', '\\pi_{');
+      optext = replacer(optext, 'RENAME_{', '\\rho_{');
+
+      console.log(297);
+      console.log(optext);
+
+      return_text =  optext + '(' + treeToLatex(tree['children'][0]) + ')';
+    }
+  }
+  else
+  {
+    optext = tree.text;
+    optext = replacer(optext, 'CROSS', '\\times');
+    optext = replacer(optext, 'NATURALJOIN', '\\bowtie');
+    optext = replacer(optext, 'MINUS', '\\setdifference');
+    optext = replacer(optext, 'DIVIDE', '\\division');
+    optext = replacer(optext, 'INTERSECT', '\\cap');
+    optext = replacer(optext, 'UNION', '\\cup');
+      
+    return_text =  '(' + treeToLatex(tree['children'][0]) + ') ' + optext + ' (' + treeToLatex(tree['children'][1]) + ')';
+  }
+  console.log('return text: ' + return_text);
+  return return_text;
+}
+
+function replacer (str, to_rep, replacement) {
+  var new_str = '';
+  var match = str.indexOf(to_rep);
+  if (match < 0)
+  {
+    //console.log(331, 'no match in ' + str + ' for ' + to_rep);
+    new_str = str;
+  }
+  else
+  {
+    //console.log(336, 'found ' + to_rep + ' in ' + str);
+    new_str = str.slice(0, match);
+    new_str += replacement;
+    new_str += str.slice(match + to_rep.length)
+  }
+  console.log(341, 'now ' + new_str);
+  return new_str;
 }

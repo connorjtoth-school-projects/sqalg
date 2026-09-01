@@ -2,43 +2,26 @@
 <head>
   <title>Testing Document</title>
   <style> 
-  body {padding:0; margin: 0;}
+  body {padding:0; margin: 0;background-color:white;}
+  p {font-size: 2rem}
   </style>
+  <script type="test/x-mathjax-config">
+  MathJax.Hub.msieHTMLCollectionBug = true;
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [ ['$$','$$'], ["\\(","\\)"] ],
+    processEscapes: true
+  }
+  });</script>
+  <script type="text/javascript" src="./MathJax-2.7.0/MathJax.js?config=TeX-AMS_HTML-full"></script>
 </head>
 <body>
+  <p id='eq'></p>
   <canvas id="main_canvas">
   </canvas>
   <script src='treedraw.js'></script>
   <script src='treeassist.js'></script>
-
   <script src='canvasfortrees.js'></script>
-
-
-
-
-  <script>
-  Tree = {type:'operation',
-        text:GREEK.LOWER_PI + '_{S.Sid}',
-        children:[
-          {type: 'operation',
-           text: GREEK.BOWTIE,
-           children:[
-             {type: 'alias',
-              text: 'R',
-              children:[
-                {type: 'table',
-                 text: 'Reserves',
-                 children: []}
-             ]},
-             {type: 'table',
-              text: 'Sailors',
-              children: []}
-          ]}
-       ]};
-
-  processTree(Tree);
-  PrintTree(cxt,Tree);
-  </script>
 </body>
 
 
